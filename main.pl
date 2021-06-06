@@ -41,6 +41,8 @@ adjacenteC_embalagem(X,Y,K) :- arcos_embalagem(X,Y,K).
 
 adjacenteC_organico(X,Y,K) :- arcos_organico(X,Y,K).
 
+arcos(X,Y,K) :- arcos_organico(X,Y,K);arcos_embalagem(X,Y,K);arcos_vidro(X,Y,K);arcos_papel(X,Y,K);arcos_lixo(X,Y,K); arcos_indiferenciados(X,Y,K).
+
 ponto_recolha(X,Y,Z,K,E,F,B) :- ponto_recolha_lixo(X,Y,Z,K,E,F,B);ponto_recolha_papel(X,Y,Z,K,E,F,B);ponto_recolha_vidro(X,Y,Z,K,E,F,B);ponto_recolha_embalagem(X,Y,Z,K,E,F,B);ponto_recolha_organico(X,Y,Z,K,E,F,B).
 
 
@@ -126,9 +128,77 @@ profundidadeprimeiro2Lixo(Nodo,NodoFinal,Historico,[ProxNodo|Caminho],Custo,Lixo
     profundidadeprimeiro2Lixo(ProxNodo,NodoFinal,[ProxNodo|Historico],Caminho,C2,Lixo),
     Custo is C1 + C2.
 
+% -------------------------------- Depth first com limite de iterações ------------------------------------
+
+resolve_ppIt(Nodo,N, [Nodo|Caminho]) :-
+	N1 is N -2,
+    profundidadeprimeiro1It(Nodo, [Nodo],0,N1, Caminho).
+
+profundidadeprimeiro1It(Nodo,_,_,_,[]) :- deposicao(Nodo).
+
+profundidadeprimeiro1It(Nodo,Historico,I,N,[ProxNodo|Caminho]) :-
+	I =< N,
+    adjacente(Nodo,ProxNodo),
+    \+member(ProxNodo,Historico),
+    I1 is I + 1,
+    profundidadeprimeiro1It(ProxNodo,[ProxNodo|Historico],I1,N,Caminho).
 
 
-% -------------------------------- Caminho com Breadth first sem distinção de lixo -----------------------------
+% --------------------------------> Depth first com limite de iterações e distinção de lixo ------------------------
+
+resolve_ppLixoIt(Nodo,Lixo,N,[Nodo|Caminho]) :-
+	N1 is N-2,
+    profundidadeprimeiro1LixoIt(Nodo, [Nodo],0,N1, Caminho,Lixo).
+
+profundidadeprimeiro1LixoIt(Nodo,_,_,_,[],Lixo) :- deposicao(Nodo).
+profundidadeprimeiro1LixoIt(Nodo,Historico,I,N,[ProxNodo|Caminho],Lixo) :-
+	I =< N,
+	(Lixo == "Lixo", adjacente_lixo(Nodo,ProxNodo);
+	Lixo == "Papel", adjacente_papel(Nodo,ProxNodo);
+	Lixo == "Vidro", adjacente_vidro(Nodo,ProxNodo);
+	Lixo == "Embalagens", adjacente_embalagem(Nodo,ProxNodo);
+	Lixo == "Organico", adjacente_organico(Nodo,ProxNodo)),
+    \+member(ProxNodo,Historico),
+    I1 is I +1,
+    profundidadeprimeiro1LixoIt(ProxNodo,[ProxNodo|Historico],I1,N,Caminho,Lixo).
+
+
+% --------------------------------> Depth first com limite de iterações e custo ------------------------------------------
+
+resolve_ppCIt(NodoInicial, NodoDestino, N,[NodoInicial|Caminho], Custo) :-
+	N1 is N-2,
+    profundidadeprimeiro2It(NodoInicial,NodoDestino,0,N1,[NodoInicial], Caminho, Custo).
+
+profundidadeprimeiro2It(Nodo,Nodo,_,_,_,[],0).
+profundidadeprimeiro2It(Nodo,NodoFinal,I,N,Historico,[ProxNodo|Caminho],Custo) :-
+	I =< N,
+    adjacenteC(Nodo,ProxNodo,C1),
+    \+member(ProxNodo,Historico),
+    I1 is I + 1,
+    profundidadeprimeiro2It(ProxNodo,NodoFinal,I1,N,[ProxNodo|Historico],Caminho,C2),
+    Custo is C1 + C2.
+
+%--------------------------------> Depth first com limite de iterações e custo com distinção de lixo ---------------------------
+
+resolve_ppCLixoIt(NodoInicial, NodoDestino, Lixo, N,[NodoInicial|Caminho], Custo) :-
+	N1 is N-2,
+    profundidadeprimeiro2LixoIt(NodoInicial,NodoDestino,0,N1,[NodoInicial], Caminho, Custo,Lixo).
+
+profundidadeprimeiro2LixoIt(Nodo,Nodo,_,_,_,[],0,Lixo).
+profundidadeprimeiro2LixoIt(Nodo,NodoFinal,I,N,Historico,[ProxNodo|Caminho],Custo,Lixo) :-
+	I =<N,
+    (Lixo == "Lixo", adjacenteC_lixo(Nodo,ProxNodo,C1);
+	Lixo == "Papel", adjacenteC_papel(Nodo,ProxNodo,C1);
+	Lixo == "Vidro", adjacenteC_vidro(Nodo,ProxNodo,C1);
+	Lixo == "Embalagens", adjacenteC_embalagem(Nodo,ProxNodo,C1);
+	Lixo == "Organico", adjacenteC_organico(Nodo,ProxNodo,C1)),
+    \+member(ProxNodo,Historico),
+    I1 is I + 1,
+    profundidadeprimeiro2LixoIt(ProxNodo,NodoFinal,I1,N,[ProxNodo|Historico],Caminho,C2,Lixo),
+    Custo is C1 + C2.
+
+
+% --------------------------------> Caminho com Breadth first sem distinção de lixo -----------------------------
 
 
 resolveBFS(Initial,Solution) :- 
@@ -499,3 +569,5 @@ caminhoAuxLixo(Lixo,Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
 	\+member(Proximo,Visitados),
 	caminhoAuxLixo(Lixo,Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
 	Dist is Dist1 + Dist2.
+
+
