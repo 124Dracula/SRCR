@@ -68,101 +68,7 @@ temElem(L,[H|T]):- temElem(L,T);memberchk(H,L).
 estaVazia(L,V) :- comprimento(L,V),nao(V>0).
 
 %----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-%------------------------------------ Caminho de um ponto de Recolha (ou garagem) para outro (ou deposicao) especificando o tipo de lixo --------------------------------------------------
-
-getCaminho(Origem,Destino,Lixo) :-
-	Lixo == "Lixo", getCaminhoLixo(Origem,Destino);
-	Lixo == "Papel", getCaminhoPapel(Origem,Destino);
-	Lixo == "Vidro", getCaminhoVidro(Origem,Destino);
-	Lixo == "Embalagens", getCaminhoEmbalagem(Origem,Destino);
-	Lixo == "Organico", getCaminhoOrganico(Origem,Destino).
-
-
-getCaminhoLixo(Origem,Destino) :-
-	findall((P,Dist),caminhoLixo(Origem,Destino,Dist,P),L),
-	print(L).
-
-caminhoLixo(Origem,Destino,Dist,[Origem|Percurso]) :-
-	caminhoAuxLixo(Origem,Destino,Percurso,Dist,[]).
-
-caminhoAuxLixo(Destino,Destino,[],0,_).
-caminhoAuxLixo(Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
-	Origem \= Destino,
-	arcos_lixo(Origem,Proximo,Dist1),
-	\+member(Proximo,Visitados),
-	caminhoAuxLixo(Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
-	Dist is Dist1 + Dist2.
-
-
-
-getCaminhoPapel(Origem,Destino) :-
-	findall((P,Dist),caminhoPapel(Origem,Destino,Dist,P),L),
-	print(L).
-
-caminhoPapel(Origem,Destino,Dist,[Origem|Percurso]) :-
-	caminhoAuxPapel(Origem,Destino,Percurso,Dist,[]).
-
-caminhoAuxPapel(Destino,Destino,[],0,_).
-caminhoAuxPapel(Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
-	Origem \= Destino,
-	arcos_papel(Origem,Proximo,Dist1),
-	\+member(Proximo,Visitados),
-	caminhoAuxPapel(Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
-	Dist is Dist1 + Dist2.
-
-
-
-getCaminhoVidro(Origem,Destino) :-
-	findall((P,Dist),caminhoVidro(Origem,Destino,Dist,P),L),
-	print(L).
-
-caminhoVidro(Origem,Destino,Dist,[Origem|Percurso]) :-
-	caminhoAuxVidro(Origem,Destino,Percurso,Dist,[]).
-
-caminhoAuxVidro(Destino,Destino,[],0,_).
-caminhoAuxVidro(Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
-	Origem \= Destino,
-	arcos_vidro(Origem,Proximo,Dist1),
-	\+member(Proximo,Visitados),
-	caminhoAuxVidro(Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
-	Dist is Dist1 + Dist2.
-
-
-getCaminhoEmbalagem(Origem,Destino) :-
-	findall((P,Dist),caminhoEmbalagem(Origem,Destino,Dist,P),L),
-	print(L).
-
-caminhoEmbalagem(Origem,Destino,Dist,[Origem|Percurso]) :-
-	caminhoAuxEmbalagem(Origem,Destino,Percurso,Dist,[]).
-
-caminhoAuxEmbalagem(Destino,Destino,[],0,_).
-caminhoAuxEmbalagem(Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
-	Origem \= Destino,
-	arcos_embalagem(Origem,Proximo,Dist1),
-	\+member(Proximo,Visitados),
-	caminhoAuxEmbalagem(Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
-	Dist is Dist1 + Dist2.
-
-
-
-
-getCaminhoOrganico(Origem,Destino) :-
-	findall((P,Dist),caminhoOrganico(Origem,Destino,Dist,P),L),
-	print(L).
-
-caminhoOrganico(Origem,Destino,Dist,[Origem|Percurso]) :-
-	caminhoAuxOrganico(Origem,Destino,Percurso,Dist,[]).
-
-caminhoAuxOrganico(Destino,Destino,[],0,_).
-caminhoAuxOrganico(Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
-	Origem \= Destino,
-	arcos_organico(Origem,Proximo,Dist1),
-	\+member(Proximo,Visitados),
-	caminhoAuxOrganico(Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
-	Dist is Dist1 + Dist2.
-
-% -------------------------------- Depth first -----------------------------
+% -------------------------------- Depth first ------------------------------------------------------------------------------------------------------------------------------------------
 
 resolve_pp(Nodo, [Nodo|Caminho]) :-
     profundidadeprimeiro1(Nodo, [Nodo], Caminho).
@@ -220,93 +126,7 @@ profundidadeprimeiro2Lixo(Nodo,NodoFinal,Historico,[ProxNodo|Caminho],Custo,Lixo
     profundidadeprimeiro2Lixo(ProxNodo,NodoFinal,[ProxNodo|Historico],Caminho,C2,Lixo),
     Custo is C1 + C2.
 
-% -------------------------------- Circuito mais rápido indiferenciado ----------------------------------
 
-maisRapido(NodoInicial,NodoDestino,Caminho,Custo) :- findall((SS,CC), resolve_ppC(NodoInicial,NodoDestino,SS,CC), L), menorTuploLista(L, (Caminho,Custo)).
-
-menorTuplo( (Z,X), (_,Y), (Z,X) ) :-
-    X =< Y.
-menorTuplo( (_,X),(W,Y),(W,Y) ) :-
-    X > Y.
-
-menorTuploLista( [X],X ).
-menorTuploLista( [X|Y],N ) :-
-    menorTuploLista( Y,Z ),
-        menorTuplo( X,Z,N ).
-
-
-% -------------------------------- Circuito mais rápido por tipo de lixo  -----------------------------------
-
-maisRapidoLixo(NodoInicial,NodoDestino,Lixo,Caminho,Custo) :- findall((SS,CC), resolve_ppCLixo(NodoInicial,NodoDestino,Lixo,SS,CC), L), menorTuploLista(L, (Caminho,Custo)).
-
-% -------------------------------- Circuito com mais pontos de recolha ---------------------------------------
-
-maisPontos(NodoInicial,Caminho,Pontos) :- findall((C,N), (resolve_pp(NodoInicial,C),comprimento(C,N1), N is N1-2), L), maiorTuploLista(L,(Caminho,Pontos)).
-
-maiorTuplo( (Z,X), (_,Y), (Z,X) ) :-
-    X > Y.
-maiorTuplo( (_,X),(W,Y),(W,Y) ) :-
-    X =< Y.
-
-maiorTuploLista( [X],X ).
-maiorTuploLista( [X|Y],N ) :-
-    maiorTuploLista( Y,Z ),
-        maiorTuplo( X,Z,N ).
-        
-% ------------------------------- >Circuito com mais pontos de recolha de um lixo específico --------------------------
-maisPontosLixo(NodoInicial,Lixo,Caminho,Pontos) :- findall((C,N), (resolve_pp(NodoInicial,C),comprimentoLixo(C,Lixo,N)), L), maiorTuploLista(L,(Caminho,Pontos)).
-
-comprimentoLixo([],Lixo,0).
-comprimentoLixo( [A|L],Lixo,N) :-
-		comprimentoLixo(L,Lixo,N1),
-		(((A \= 0, A \= 1000),((Lixo == "Lixo", ponto_recolha_lixo(_,_,A,_,_,_,_));
-		(Lixo == "Papel", ponto_recolha_papel(_,_,A,_,_,_,_));
-		(Lixo == "Vidro", ponto_recolha_vidro(_,_,A,_,_,_,_));
-		(Lixo == "Embalagens", ponto_recolha_embalagem(_,_,A,_,_,_,_));
-		(Lixo == "Organico", ponto_recolha_organico(_,_,A,_,_,_,_))),N is N1+1);
-		((A ==0);( A== 1000);(Lixo \= "Lixo", Lixo \= "Papel", Lixo \= "Vidro", Lixo \= "Embalagens", Lixo \= "Organico");
-		(Lixo == "Lixo", nao(ponto_recolha_lixo(_,_,A,_,_,_,_)));
-		(Lixo == "Papel", nao(ponto_recolha_papel(_,_,A,_,_,_,_)));
-		(Lixo == "Vidro", nao(ponto_recolha_vidro(_,_,A,_,_,_,_)));
-		(Lixo == "Embalagens", nao(ponto_recolha_embalagem(_,_,A,_,_,_,_)));
-		(Lixo == "Organico", nao(ponto_recolha_organico(_,_,A,_,_,_,_)))),
-		N is N1).
-
-
-% ----------------------------------- Comparar circuitos com os parâmetros de produtividade --------------------------------------
-
-
-%circuitoMaisProdutivo
-
-% ---------------------------------- Comparar circuitos com o parâmetro de eficiência --------------------------------------------
-
-circuitoMaisEficiente(NodoInicial,Caminho,Quantidade) :- findall((C,N), (resolve_pp(NodoInicial,C),quantidadeLixo(C,N)), L), maiorTuploLista(L,(Caminho,Quantidade)).
-
-quantidadeLixo([],0).
-quantidadeLixo([A|L],N) :-
-	quantidadeLixo(L,N1),
-	ponto_recolha(_,_,A,_,_,_,C),
-	N is N1+C.
-
-% --------------------------------- Comparar circuitos com o parâmetro de eficiência por tipo de lixo -------------------------------
-
-circuitoMaisEficienteLixo(NodoInicial,Lixo,Caminho,Quantidade) :- findall((C,N), (resolve_pp(NodoInicial,C),quantidadeLixoLixo(C,Lixo,N)), L), maiorTuploLista(L,(Caminho,Quantidade)).
-
-quantidadeLixoLixo([],Lixo,0).
-quantidadeLixoLixo([A|L],Lixo,N) :-
-	quantidadeLixoLixo(L,Lixo,N1),
-	(((A \= 0, A \= 1000),((Lixo == "Lixo", ponto_recolha_lixo(_,_,A,_,_,_,C));
-	(Lixo == "Papel", ponto_recolha_papel(_,_,A,_,_,_,C));
-	(Lixo == "Vidro", ponto_recolha_vidro(_,_,A,_,_,_,C));
-	(Lixo == "Embalagens", ponto_recolha_embalagem(_,_,A,_,_,_,C));
-	(Lixo == "Organico", ponto_recolha_organico(_,_,A,_,_,_,C))),N is N1+C);
-	((A ==0);( A== 1000);(Lixo \= "Lixo", Lixo \= "Papel", Lixo \= "Vidro", Lixo \= "Embalagens", Lixo \= "Organico");
-	(Lixo == "Lixo", nao(ponto_recolha_lixo(_,_,A,_,_,_,_)));
-	(Lixo == "Papel", nao(ponto_recolha_papel(_,_,A,_,_,_,_)));
-	(Lixo == "Vidro", nao(ponto_recolha_vidro(_,_,A,_,_,_,_)));
-	(Lixo == "Embalagens", nao(ponto_recolha_embalagem(_,_,A,_,_,_,_)));
-	(Lixo == "Organico", nao(ponto_recolha_organico(_,_,A,_,_,_,_)))),
-	N is N1).
 
 % -------------------------------- Caminho com Breadth first sem distinção de lixo -----------------------------
 
@@ -332,7 +152,6 @@ extend([Node|Path],NewPaths) :-
 extend(Path,_).
 
 reverse([],Z,Z).
-
 reverse([H|T],Z,Acc) :- reverse(T,Z,[H|Acc]).
 
 
@@ -518,3 +337,165 @@ obtem_melhor([Caminho1/Custo1/Est1,_/Custo2/Est2|Caminhos], MelhorCaminho):-
 
 obtem_melhor([_|Caminhos],MelhorCaminho) :-
     obtem_melhor(Caminhos, MelhorCaminho).
+
+
+
+ % --------------------------------> Circuito mais rápido indiferenciado ----------------------------------
+
+maisRapido(NodoInicial,NodoDestino,Caminho,Custo) :- findall((SS,CC), resolve_ppC(NodoInicial,NodoDestino,SS,CC), L), menorTuploLista(L, (Caminho,Custo)).
+
+menorTuplo( (Z,X), (_,Y), (Z,X) ) :-
+    X =< Y.
+menorTuplo( (_,X),(W,Y),(W,Y) ) :-
+    X > Y.
+
+menorTuploLista( [X],X ).
+menorTuploLista( [X|Y],N ) :-
+    menorTuploLista( Y,Z ),
+        menorTuplo( X,Z,N ).
+
+
+% -------------------------------- Circuito mais rápido por tipo de lixo  -----------------------------------
+
+maisRapidoLixo(NodoInicial,NodoDestino,Lixo,Caminho,Custo) :- findall((SS,CC), resolve_ppCLixo(NodoInicial,NodoDestino,Lixo,SS,CC), L), menorTuploLista(L, (Caminho,Custo)).
+
+% -------------------------------- Circuito com mais pontos de recolha ---------------------------------------
+
+maisPontos(NodoInicial,Caminho,Pontos) :- findall((C,N), (resolve_pp(NodoInicial,C),nPontosRecolha(C,N)), L), maiorTuploLista(L,(Caminho,Pontos)).
+
+
+maiorTuplo( (Z,X), (_,Y), (Z,X) ) :-
+    X > Y.
+maiorTuplo( (_,X),(W,Y),(W,Y) ) :-
+    X =< Y.
+
+maiorTuploLista( [X],X ).
+maiorTuploLista( [X|Y],N ) :-
+    maiorTuploLista( Y,Z ),
+        maiorTuplo( X,Z,N ).
+        
+% ------------------------------- >Circuito com mais pontos de recolha de um lixo específico --------------------------
+maisPontosLixo(NodoInicial,Lixo,Caminho,Pontos) :- findall((C,N), (resolve_pp(NodoInicial,C),comprimentoLixo(C,Lixo,N)), L), maiorTuploLista(L,(Caminho,Pontos)).
+
+comprimentoLixo([],Lixo,0).
+comprimentoLixo( [A|L],Lixo,N) :-
+		comprimentoLixo(L,Lixo,N1),
+		(((A \= 0, A \= 1000),((Lixo == "Lixo", ponto_recolha_lixo(_,_,A,_,_,_,_));
+		(Lixo == "Papel", ponto_recolha_papel(_,_,A,_,_,_,_));
+		(Lixo == "Vidro", ponto_recolha_vidro(_,_,A,_,_,_,_));
+		(Lixo == "Embalagens", ponto_recolha_embalagem(_,_,A,_,_,_,_));
+		(Lixo == "Organico", ponto_recolha_organico(_,_,A,_,_,_,_))),N is N1+1);
+		((A ==0);( A== 1000);(Lixo \= "Lixo", Lixo \= "Papel", Lixo \= "Vidro", Lixo \= "Embalagens", Lixo \= "Organico");
+		(Lixo == "Lixo", nao(ponto_recolha_lixo(_,_,A,_,_,_,_)));
+		(Lixo == "Papel", nao(ponto_recolha_papel(_,_,A,_,_,_,_)));
+		(Lixo == "Vidro", nao(ponto_recolha_vidro(_,_,A,_,_,_,_)));
+		(Lixo == "Embalagens", nao(ponto_recolha_embalagem(_,_,A,_,_,_,_)));
+		(Lixo == "Organico", nao(ponto_recolha_organico(_,_,A,_,_,_,_)))),
+		N is N1).
+
+
+ %------------------------------------> Caminho mais produtivo (distância) ------------------------------------
+
+caminhoProdutivoDis(NodoInicial,Caminho,Custo) :- findall((C,D), (resolve_pp(NodoInicial,C),distanciaentrePontos(C,Dis),media(C,Dis,D)), L), maiorTuploLista(L, (Caminho,Custo)).
+
+distanciaentrePontos([A],0).
+distanciaentrePontos([A,B|L],Dis) :-
+		distanciaentrePontos([B|L],Dis1),
+		((A \= 0, adjacenteC(A,B,Dis2), Dis is Dis1 + Dis2);
+		A == 0, Dis is Dis1).
+
+media([],Dis,0).
+media(C,Dis,D) :-
+	nPontosRecolha(C,P),
+	((P \= 0, D is Dis/P);
+	P == 0, Dis is 0).
+
+nPontosRecolha([],0).
+nPontosRecolha([A|L],Pontos) :-
+	nPontosRecolha(L,Pontos1),
+	((A \= 0, A \= 1000, Pontos is Pontos1 + 1);
+	(A == 0; A == 1000), Pontos is Pontos1).
+
+% ----------------------------------- Caminho mais produtivo (distância) por lixo --------------------------------------
+
+caminhoProdutivoDisLixo(NodoInicial,Lixo,Caminho,Custo) :- findall((C,D), (resolve_ppLixo(NodoInicial,Lixo,C),distanciaentrePontosLixo(Lixo,C,Dis),media(C,Dis,D)), L), maiorTuploLista(L, (Caminho,Custo)).
+
+
+distanciaentrePontosLixo(Lixo,[A],0).
+distanciaentrePontosLixo(Lixo,[A,B|L],Dis) :-
+		distanciaentrePontosLixo(Lixo,[B|L],Dis1),
+		((A \= 0,
+		(Lixo == "Lixo", adjacenteC_lixo(A,B,Dis2);
+		Lixo == "Papel", adjacenteC_papel(A,B,Dis2);
+		Lixo == "Vidro", adjacenteC_vidro(A,B,Dis2);
+		Lixo == "Embalagens", adjacenteC_embalagem(A,B,Dis2);
+		Lixo == "Organico", adjacenteC_organico(A,B,Dis2)), 
+		Dis is Dis1 + Dis2);
+		A == 0, Dis is Dis1).
+
+
+% ---------------------------------- Caminho mais produtivo (lixo recolhido) --------------------------------------------
+
+caminhoProdutivoQuantidade(NodoInicial,Caminho,Quantidade) :- findall((C,N), (resolve_pp(NodoInicial,C),quantidadeLixo(C,N)), L), maiorTuploLista(L,(Caminho,Quantidade)).
+
+quantidadeLixo([],0).
+quantidadeLixo([A|L],N) :-
+	quantidadeLixo(L,N1),
+	ponto_recolha(_,_,A,_,_,_,C),
+	N is N1+C.
+
+% --------------------------------- Caminho mais produtivo (lixo recolhido) por tipo de lixo -------------------------------
+
+caminhoProdutivoQuantidadeLixo(NodoInicial,Lixo,Caminho,Quantidade) :- findall((C,N), (resolve_pp(NodoInicial,C),quantidadeLixoLixo(C,Lixo,N)), L), maiorTuploLista(L,(Caminho,Quantidade)).
+
+quantidadeLixoLixo([],Lixo,0).
+quantidadeLixoLixo([A|L],Lixo,N) :-
+	quantidadeLixoLixo(L,Lixo,N1),
+	(((A \= 0, A \= 1000),((Lixo == "Lixo", ponto_recolha_lixo(_,_,A,_,_,_,C));
+	(Lixo == "Papel", ponto_recolha_papel(_,_,A,_,_,_,C));
+	(Lixo == "Vidro", ponto_recolha_vidro(_,_,A,_,_,_,C));
+	(Lixo == "Embalagens", ponto_recolha_embalagem(_,_,A,_,_,_,C));
+	(Lixo == "Organico", ponto_recolha_organico(_,_,A,_,_,_,C))),N is N1+C);
+	((A ==0);( A== 1000);(Lixo \= "Lixo", Lixo \= "Papel", Lixo \= "Vidro", Lixo \= "Embalagens", Lixo \= "Organico");
+	(Lixo == "Lixo", nao(ponto_recolha_lixo(_,_,A,_,_,_,_)));
+	(Lixo == "Papel", nao(ponto_recolha_papel(_,_,A,_,_,_,_)));
+	(Lixo == "Vidro", nao(ponto_recolha_vidro(_,_,A,_,_,_,_)));
+	(Lixo == "Embalagens", nao(ponto_recolha_embalagem(_,_,A,_,_,_,_)));
+	(Lixo == "Organico", nao(ponto_recolha_organico(_,_,A,_,_,_,_)))),
+	N is N1).
+
+% ---------------------------------  Caminho mais eficiente ----------------------------------------------------
+
+caminhoEficiente(NodoInicial,NodoDestino,Caminho,Grau) :- findall((C,G), (resolve_ppC(NodoInicial,NodoDestino,C,D),quantidadeLixo(C,N),grauEficiencia(D,N,G)), L), maiorTuploLista(L,(Caminho,Grau)).
+
+grauEficiencia(0,_,0).
+grauEficiencia(_,0,0).
+grauEficiencia(D,N,G) :-
+	G is N/D.
+
+% --------------------------------- Caminho mais eficiente por tipo de lixo ---------------------------------------
+
+caminhoEficienteLixo(NodoInicial,NodoDestino,Lixo,Caminho,Grau) :- findall((C,G), (resolve_ppC(NodoInicial,NodoDestino,C,D),quantidadeLixoLixo(C,Lixo,N),grauEficiencia(D,N,G)), L), maiorTuploLista(L,(Caminho,Grau)).
+
+
+%------------------------------------ Caminho de um ponto de Recolha (ou garagem) para outro (ou deposicao) especificando o tipo de lixo --------------------------------------------------
+
+getCaminho(Origem,Destino,Lixo) :-
+	findall((P,Dist),caminhoLixo(Lixo,Origem,Destino,Dist,P),L),
+	print(L).
+
+
+caminhoLixo(Lixo,Origem,Destino,Dist,[Origem|Percurso]) :-
+	caminhoAuxLixo(Lixo,Origem,Destino,Percurso,Dist,[]).
+
+caminhoAuxLixo(Lixo,Destino,Destino,[],0,_).
+caminhoAuxLixo(Lixo,Origem,Destino,[Proximo|Percurso],Dist,Visitados) :-
+	Origem \= Destino,
+	(Lixo == "Lixo", adjacenteC_lixo(Origem,Proximo,Dist1);
+	Lixo == "Papel", adjacenteC_papel(Origem,Proximo,Dist1);
+	Lixo == "Vidro", adjacenteC_vidro(Origem,Proximo,Dist1);
+	Lixo == "Embalagens", adjacenteC_embalagem(Origem,Proximo,Dist1);
+	Lixo == "Organico", adjacenteC_organico(Origem,Proximo,Dist1)),
+	\+member(Proximo,Visitados),
+	caminhoAuxLixo(Lixo,Proximo,Destino,Percurso,Dist2,[Origem|Visitados]),
+	Dist is Dist1 + Dist2.
