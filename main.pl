@@ -41,7 +41,7 @@ adjacenteC_embalagem(X,Y,K) :- arcos_embalagem(X,Y,K).
 
 adjacenteC_organico(X,Y,K) :- arcos_organico(X,Y,K).
 
-arcos(X,Y,K) :- arcos_organico(X,Y,K);arcos_embalagem(X,Y,K);arcos_vidro(X,Y,K);arcos_papel(X,Y,K);arcos_lixo(X,Y,K); arcos_indiferenciados(X,Y,K).
+arcos(X,Y,K) :- arcos_organico(X,Y,K);arcos_embalagem(X,Y,K);arcos_vidro(X,Y,K);arcos_papel(X,Y,K);arcos_lixo(X,Y,K);arcos_indiferenciados(X,Y,K).
 
 ponto_recolha(X,Y,Z,K,E,F,B) :- ponto_recolha_lixo(X,Y,Z,K,E,F,B);ponto_recolha_papel(X,Y,Z,K,E,F,B);ponto_recolha_vidro(X,Y,Z,K,E,F,B);ponto_recolha_embalagem(X,Y,Z,K,E,F,B);ponto_recolha_organico(X,Y,Z,K,E,F,B).
 
@@ -251,6 +251,30 @@ extendLixo([Node|Path],Lixo,NewPaths) :-
     NewPaths).
 
 extendLixo(Path,Lixo,_).
+
+
+% -------------------------------- Caminho com Breadth first com custo -------------------------------------------------
+
+resolveBFSCusto(Initial,Solution,Custo) :- 
+    garagem(Initial),
+    solveBFS([[Initial]],Solucao),
+    reverse(Solucao,Solution,[]),
+    custoCaminho(Solution,Custo).
+
+custoCaminho([A],0).
+custoCaminho([A,B|L],Custo) :-
+	custoCaminho([B|L],Custo1),
+	arcos(A,B,Custo2),
+	Custo is Custo1 + Custo2.
+
+
+
+% -------------------------------- Caminho Breadth first com custo e por lixo -------------------------------------
+resolveBFSLixoCusto(Initial,Lixo,Solution,Custo) :- 
+    garagem(Initial),
+    solveBFSLixo([[Initial]],Lixo,Solucao),
+    reverse(Solucao,Solution,[]),
+    custoCaminho(Solution,Custo).
 
 % ------------------------------------ Caminho com Gulosa ----------------------------------------------------------- 
 
